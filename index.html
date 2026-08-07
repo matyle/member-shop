@@ -192,7 +192,7 @@ function render() {
             <div class="desc">${p.desc}</div>
             <div class="bottom">
                 <div class="price">${typeof p.price === 'string' ? p.price : '¥'+p.price}</div>
-                <button class="buy-btn" onclick="buy('${p.name}', '${p.desc}', ${typeof p.price === 'string' ? '"' + p.price + '"' : p.price})">购买</button>
+                <button class="buy-btn" data-name="${p.name}" data-desc="${p.desc}" data-price="${p.price}">购买</button>
             </div>
         `;
         grid.appendChild(el);
@@ -204,6 +204,14 @@ function buy(name, desc, price) {
     orderText.textContent = text;
     modalOverlay.style.display = 'flex';
 }
+
+// Event delegation for buy buttons
+grid.addEventListener('click', e => {
+    const btn = e.target.closest('.buy-btn');
+    if (btn) {
+        buy(btn.dataset.name, btn.dataset.desc, btn.dataset.price);
+    }
+});
 
 searchInput.addEventListener('input', e => {
     query = e.target.value;
