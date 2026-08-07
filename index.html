@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>会员商城 - 靠谱低价</title>
+    <style>
+        :root {
+            --primary: #007AFF;
+            --bg: #F2F2F7;
+            --card: #FFFFFF;
+            --text: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --accent: #34C759;
+            --price: #FF3B30;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --card: #1C1C1E;
+                --text: #FFFFFF;
+                --text-secondary: #8E8E93;
+            }
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+        
+        /* Header */
+        header { position: sticky; top: 0; z-index: 100; background: rgba(242,242,247,0.85); backdrop-filter: blur(20px); padding: 16px; padding-top: max(16px, env(safe-area-inset-top)); border-bottom: 0.5px solid var(--text-secondary); }
+        @media (prefers-color-scheme: dark) { header { background: rgba(0,0,0,0.85); border-bottom-color: #38383A; } }
+        .search-box { width: 100%; padding: 10px 16px; border-radius: 12px; border: none; background: rgba(142,142,147,0.15); color: var(--text); font-size: 16px; outline: none; }
+        
+        /* Tabs */
+        .tabs { display: flex; overflow-x: auto; padding: 12px 16px; gap: 12px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 6px 16px; border-radius: 20px; background: var(--card); font-size: 14px; font-weight: 500; white-space: nowrap; border: 1px solid rgba(142,142,147,0.2); transition: 0.2s; cursor: pointer; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 12px; }
+        @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); max-width: 800px; margin: 0 auto; } }
+        @media (min-width: 900px) { .grid { grid-template-columns: repeat(4, 1fr); max-width: 1000px; } }
+
+        .card { background: var(--card); border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; overflow: hidden; }
+        .cat-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(0,122,255,0.1); color: var(--primary); align-self: flex-start; margin-bottom: 8px; }
+        .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; flex-grow: 1; }
+        .bottom { display: flex; justify-content: space-between; align-items: center; }
+        .price { font-size: 18px; color: var(--price); font-weight: bold; }
+        .price span { font-size: 12px; font-weight: normal; }
+        .buy-btn { padding: 8px 14px; border-radius: 20px; background: var(--primary); color: white; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .buy-btn:active { opacity: 0.8; transform: scale(0.95); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; backdrop-filter: blur(10px); }
+        .modal { background: var(--card); width: 100%; max-width: 320px; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal h3 { margin: 0 0 16px; font-size: 18px; }
+        .qr-placeholder { width: 180px; height: 180px; background: #E5E5EA; border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 12px; }
+        .order-text { background: rgba(142,142,147,0.15); padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; word-break: break-all; cursor: pointer; user-select: all; }
+        .copy-hint { font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; }
+        .close-modal { margin-top: 8px; background: transparent; border: 1px solid var(--text-secondary); color: var(--text); padding: 8px 24px; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        
+        .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 style="margin: 0 0 12px; font-size: 20px;">⚡ 会员商城</h2>
+    <input type="text" class="search-box" id="searchInput" placeholder="搜索会员名称...">
+</header>
+
+<div class="tabs" id="tabs">
+    <div class="tab active" data-cat="all">全部</div>
+    <div class="tab" data-cat="视频">📺 视频</div>
+    <div class="tab" data-cat="音乐">🎵 音乐</div>
+    <div class="tab" data-cat="学习">📚 学习</div>
+    <div class="tab" data-cat="生活">🎁 生活</div>
+    <div class="tab" data-cat="家政">🧹 家政</div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="footer">
+    💬 微信：<span id="footerWechat">你的微信号</span><br>
+    长期收各类激活码 · 支持正规充值售后<br>
+    价格更新：2026.8.7
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3>🛒 下单确认</h3>
+        <div class="qr-placeholder">在此处放置微信收款码</div>
+        <p style="font-size: 13px; margin-bottom: 8px;">扫码支付后，添加/联系微信下单</p>
+        <div class="order-text" style="background: var(--accent); color: white; font-weight: bold; font-size: 16px;" id="wechatId">你的微信号</div>
+        <button class="buy-btn" style="margin-top:12px; width:100%; padding:10px;" onclick="navigator.clipboard.writeText(document.getElementById('wechatId').textContent);this.textContent='已复制！'">复制微信号</button>
+        <a href="weixin://" class="buy-btn" style="display:inline-block; text-decoration:none; width:100%; padding:12px; text-align:center;">打开微信</a>
+        <button class="close-modal" id="closeBtn">关闭</button>
+    </div>
+</div>
+
+<script>
+const PRODUCTS = [
+  {"cat": "视频", "name": "知乎", "desc": "14个月", "price": 108},
+  {"cat": "视频", "name": "腾讯视频", "desc": "年卡", "price": 167},
+  {"cat": "视频", "name": "腾讯超级影视", "desc": "年费", "price": 268},
+  {"cat": "视频", "name": "优酷", "desc": "年卡", "price": 63},
+  {"cat": "视频", "name": "酷喵", "desc": "年卡(无限制)", "price": 127},
+  {"cat": "视频", "name": "芒果TV", "desc": "年卡", "price": 65},
+  {"cat": "视频", "name": "芒果TV", "desc": "全屏年卡", "price": 149},
+  {"cat": "视频", "name": "爱奇艺", "desc": "黄金月卡", "price": 29.5},
+  {"cat": "视频", "name": "爱奇艺", "desc": "黄金季卡", "price": 60},
+  {"cat": "视频", "name": "爱奇艺", "desc": "黄金年卡", "price": 158},
+  {"cat": "视频", "name": "爱奇艺", "desc": "黄金年卡(慢充)", "price": 118},
+  {"cat": "视频", "name": "爱奇艺", "desc": "白金365天", "price": 238},
+  {"cat": "视频", "name": "爱奇艺", "desc": "星钻年卡", "price": 287},
+  {"cat": "视频", "name": "小小优趣", "desc": "SVIP年卡+1个月", "price": 388},
+  {"cat": "音乐", "name": "网易云音乐", "desc": "VIP年卡", "price": 70},
+  {"cat": "音乐", "name": "网易云音乐", "desc": "超级SVIP年卡", "price": 115},
+  {"cat": "音乐", "name": "QQ音乐", "desc": "豪华绿钻年卡", "price": 135},
+  {"cat": "音乐", "name": "QQ音乐", "desc": "超级绿钻年卡", "price": 180},
+  {"cat": "音乐", "name": "酷我音乐", "desc": "豪华年卡", "price": 114},
+  {"cat": "音乐", "name": "酷我音乐", "desc": "超级年卡", "price": 160},
+  {"cat": "音乐", "name": "酷狗音乐", "desc": "豪华年卡", "price": 120},
+  {"cat": "音乐", "name": "酷狗音乐", "desc": "超级年卡(新号)", "price": 150},
+  {"cat": "音乐", "name": "酷狗音乐", "desc": "超级年卡(无限制)", "price": 165},
+  {"cat": "音乐", "name": "汽水音乐", "desc": "VIP年卡", "price": 95},
+  {"cat": "音乐", "name": "汽水音乐", "desc": "SVIP年卡", "price": 148},
+  {"cat": "音乐", "name": "喜马拉雅", "desc": "成人年卡", "price": 120},
+  {"cat": "音乐", "name": "喜马拉雅", "desc": "儿童年卡", "price": 149},
+  {"cat": "音乐", "name": "喜马拉雅", "desc": "年卡+京东年卡", "price": 184},
+  {"cat": "音乐", "name": "樊登读书", "desc": "年卡", "price": 185},
+  {"cat": "音乐", "name": "非凡精读", "desc": "年卡", "price": 165},
+  {"cat": "音乐", "name": "李蕾讲经典", "desc": "年卡", "price": 165},
+  {"cat": "学习", "name": "作业帮", "desc": "VIP年卡", "price": 137},
+  {"cat": "学习", "name": "作业帮", "desc": "SVIP年卡", "price": 203},
+  {"cat": "学习", "name": "作业帮", "desc": "SVIP两年", "price": 310},
+  {"cat": "学习", "name": "百度网盘", "desc": "季卡", "price": 63},
+  {"cat": "学习", "name": "百度网盘", "desc": "SVIP新用户一年", "price": 157},
+  {"cat": "学习", "name": "百度网盘", "desc": "SVIP老用户一年", "price": 187},
+  {"cat": "学习", "name": "百度网盘", "desc": "SVIP学生一年", "price": 170},
+  {"cat": "学习", "name": "夸克网盘", "desc": "VIP年卡", "price": 35},
+  {"cat": "学习", "name": "夸克网盘", "desc": "SVIP年卡", "price": 115},
+  {"cat": "学习", "name": "WPS", "desc": "超级会员年卡", "price": 101},
+  {"cat": "学习", "name": "WPS", "desc": "大会员年卡", "price": 145},
+  {"cat": "学习", "name": "WPS", "desc": "大会员两年卡", "price": 283},
+  {"cat": "学习", "name": "剪映", "desc": "VIP", "price": 113},
+  {"cat": "学习", "name": "剪映", "desc": "SVIP", "price": 216},
+  {"cat": "学习", "name": "百度文库", "desc": "VIP年卡", "price": 48},
+  {"cat": "学习", "name": "小读者学堂", "desc": "年卡", "price": 67},
+  {"cat": "学习", "name": "快看漫画", "desc": "年卡", "price": 43},
+  {"cat": "生活", "name": "饿了么", "desc": "闪购年卡", "price": 19},
+  {"cat": "生活", "name": "京东", "desc": "PLUS会员年卡", "price": 78},
+  {"cat": "生活", "name": "唯品会", "desc": "超级年卡", "price": 50},
+  {"cat": "生活", "name": "必胜客", "desc": "尊享版年卡", "price": 48},
+  {"cat": "生活", "name": "醒图", "desc": "VIP/SVIP", "price": "私聊"},
+  {"cat": "家政", "name": "京东家政", "desc": "2小时(工作日)", "price": "50-87"},
+  {"cat": "家政", "name": "京东家政", "desc": "2小时(周末)", "price": "55-87"},
+  {"cat": "家政", "name": "京东家政", "desc": "3小时(通)", "price": 115},
+  {"cat": "家政", "name": "京东洗鞋", "desc": "两件(3天内取)", "price": 31},
+  {"cat": "家政", "name": "京东洗衣", "desc": "两件(3天内取)", "price": 35},
+  {"cat": "家政", "name": "京东洗衣", "desc": "四件(3天内取)", "price": 54}
+];
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('searchInput');
+const tabs = document.querySelectorAll('.tab');
+const modalOverlay = document.getElementById('modalOverlay');
+const orderText = document.getElementById('orderText');
+const closeBtn = document.getElementById('closeBtn');
+
+let currentCat = 'all';
+let query = '';
+
+function render() {
+    grid.innerHTML = '';
+    const filtered = PRODUCTS.filter(p => {
+        const matchCat = currentCat === 'all' || p.cat === currentCat;
+        const matchSearch = p.name.includes(query) || p.desc.includes(query);
+        return matchCat && matchSearch;
+    });
+
+    filtered.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+            <span class="cat-tag">${p.cat}</span>
+            <div class="name">${p.name}</div>
+            <div class="desc">${p.desc}</div>
+            <div class="bottom">
+                <div class="price">${typeof p.price === 'string' ? p.price : '¥'+p.price}</div>
+                <button class="buy-btn" onclick="buy('${p.name}', '${p.desc}', ${typeof p.price === 'string' ? '"' + p.price + '"' : p.price})">购买</button>
+            </div>
+        `;
+        grid.appendChild(el);
+    });
+}
+
+function buy(name, desc, price) {
+    const text = `我要买：${name} ${desc}\n价格：¥${price}\n(请回复你的账号/手机号)`;
+    orderText.textContent = text;
+    modalOverlay.style.display = 'flex';
+}
+
+searchInput.addEventListener('input', e => {
+    query = e.target.value;
+    render();
+});
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCat = tab.dataset.cat;
+        render();
+    });
+});
+
+closeBtn.addEventListener('click', () => {
+    modalOverlay.style.display = 'none';
+});
+
+modalOverlay.addEventListener('click', e => {
+    if (e.target === modalOverlay) modalOverlay.style.display = 'none';
+});
+
+render();
+</script>
+</body>
+</html>
